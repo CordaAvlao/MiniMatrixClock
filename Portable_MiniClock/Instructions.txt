@@ -1,0 +1,25 @@
+=== Mini Matrix Clock (Portable) ===
+
+Version: 2.1 (Standalone)
+Created: 2025-12-10
+
+[INSTALLATION]
+Aucune installation requise !
+Ce dossier contient tout ce qu'il faut. Vous pouvez le copier sur une clé USB et le mettre sur un autre PC.
+
+[UTILISATION]
+1. Lancez "MiniClock.exe".
+2. L'horloge va apparaitre et se caler automatiquement sur l'heure Windows.
+   (Si elle ne le fait pas, le fichier "config.json" sera créé pour mémoriser sa position future).
+
+[FONCTIONNALITES]
+- Clic Gauche maintenu : Déplacer.
+- Clic Droit : Menu (Quitter, etc.).
+- Mode Plein Ecran : Devient transparente pour les films/jeux.
+
+[FICHIERS]
+- MiniClock.exe : Le programme.
+- config.json : (Sera créé automatiquement) Sauvegarde votre position.
+- source_code_backup.py : Le code source original (si besoin).
+
+Bonne utilisation !
