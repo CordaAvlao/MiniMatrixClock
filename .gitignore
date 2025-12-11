@@ -1,0 +1,10 @@
+build/
+dist/
+__pycache__/
+*.spec
+*.json
+*.bat
+Portable_MiniClock/
+GitHubUploader.py
+Lancer_Uploader.bat
+.git/
