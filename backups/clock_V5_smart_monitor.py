@@ -37,8 +37,7 @@ class MiniClock:
         self.text_color = "#00FF00"  # Matrix Green
         
         self.normal_bg = "black"     # Store the sampled color
-        self.transparent_key = "#010001" # CHANGED: Slightly red-black to avoid conflict with pure black
-
+        self.transparent_key = "#000001" # Almost black, used for transparency
         
         # Configure transparency key
         self.root.wm_attributes("-transparentcolor", self.transparent_key)
@@ -178,20 +177,6 @@ class MiniClock:
             
             # Get Active Window
             hWnd = user32.GetForegroundWindow()
-            
-            # EXCLUSION LIST:
-            # - Progman, WorkerW: Desktop
-            # - Shell_TrayWnd: Taskbar
-            className = ctypes.create_unicode_buffer(256)
-            user32.GetClassNameW(hWnd, className, 256)
-            class_str = className.value
-            
-            if class_str in ["Progman", "WorkerW", "Shell_TrayWnd"]:
-                # If active window is Desktop or Taskbar, NEVER go transparent
-                self.set_transparent_mode(False)
-                # Re-schedule and return immediately
-                self.root.after(1000, self.check_fullscreen)
-                return
             
             # Get Screen Size (Primary)
             # Note: This is imperfect for multi-mon, but we refine with Monitor check below
@@ -404,23 +389,7 @@ class MiniClock:
             # NO WITHDRAW NEEDED because we are sampling OUTSIDE the window geometry
             bg_color = self.get_taskbar_color(sample_x, sample_y)
             
-            # OPAQUE SAFETY FORCE
-            # Parse hex to int for checking brightness
-            try:
-                r = int(bg_color[1:3], 16)
-                g = int(bg_color[3:5], 16)
-                b = int(bg_color[5:7], 16)
-                
-                # If color is VERY dark (near black), but not exactly black
-                # Force it to Pure Black (#000000) to ensure it is NOT transparent
-                # Threshold of 10 (out of 255) is safe for "deep black" themes
-                if (r + g + b) < 15: 
-                    bg_color = "#000000"
-                    
-            except Exception:
-                pass
-
-            # Avoid accidentally picking the transparent key (paranoid check)
+            # Avoid accidentally picking the transparent key
             if bg_color == self.transparent_key:
                 bg_color = "#000000"
             
@@ -472,22 +441,16 @@ class MiniClock:
 
     def check_startup_status(self):
         try:
-            # Check for the NEW key first
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
-            try:
-                winreg.QueryValueEx(key, "MiniClock_Auto") # New Key Name
-                winreg.CloseKey(key)
-                return True
-            except WindowsError:
-                winreg.CloseKey(key)
-                return False
+            winreg.QueryValueEx(key, "MiniClock")
+            winreg.CloseKey(key)
+            return True
         except WindowsError:
             return False
 
     def toggle_startup(self):
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        app_name = "MiniClock_Auto" # Changed Name to reset Task Manager status
-        old_app_name = "MiniClock"  # Old name to clean up
+        app_name = "MiniClock"
         
         if self.startup_var.get():
             # Enable Startup: Add to Registry
@@ -505,15 +468,8 @@ class MiniClock:
                     
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
                 winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, target)
-                
-                # Cleanup Old Key if exists
-                try:
-                    winreg.DeleteValue(key, old_app_name)
-                except WindowsError:
-                    pass
-                    
                 winreg.CloseKey(key)
-                print("Registry Startup enabled (New Key).")
+                print("Registry Startup enabled.")
                 
             except Exception as e:
                 print(f"Failed to set registry key: {e}")
@@ -523,12 +479,6 @@ class MiniClock:
             try:
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
                 winreg.DeleteValue(key, app_name)
-                # Ensure old one is gone too
-                try:
-                    winreg.DeleteValue(key, old_app_name)
-                except WindowsError:
-                    pass
-                    
                 winreg.CloseKey(key)
                 print("Registry Startup disabled.")
             except Exception as e:

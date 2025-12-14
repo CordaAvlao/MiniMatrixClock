@@ -6,7 +6,6 @@ from PIL import ImageGrab
 import platform
 import json
 import os
-import sys
 import ctypes
 from ctypes import wintypes
 import time
@@ -23,11 +22,7 @@ class MiniClock:
         self.root.attributes('-topmost', True)
         
         # Configuration
-        if getattr(sys, 'frozen', False):
-            self.app_path = os.path.dirname(sys.executable)
-        else:
-            self.app_path = os.path.dirname(os.path.abspath(__file__))
-        self.config_file = os.path.join(self.app_path, "config.json")
+        self.config_file = "config.json"
         
         # State Variables
         self.startup_var = tk.BooleanVar(value=self.check_startup_status())
@@ -37,29 +32,18 @@ class MiniClock:
         self.text_color = "#00FF00"  # Matrix Green
         
         self.normal_bg = "black"     # Store the sampled color
-        self.transparent_key = "#010001" # CHANGED: Slightly red-black to avoid conflict with pure black
-
+        self.transparent_key = "#000001" # Almost black, used for transparency
         
         # Configure transparency key
         self.root.wm_attributes("-transparentcolor", self.transparent_key)
         
-        # Text Configuration
-        self.base_font_size = 40
-        self.base_padding = 2
-        self.zoom_level = 1.0
-        self.font_family = "DS-Digital"
-        
-        self.current_font = (self.font_family, self.base_font_size)
-
-        
         self.label = tk.Label(
             self.root, 
-            font=self.current_font, 
+            font=self.font, 
             fg=self.text_color, 
             bd=0, 
-            padx=self.base_padding, 
-            pady=0,
-            text="00:00"
+            padx=10, 
+            pady=0 
         )
         self.label.pack()
         
@@ -82,27 +66,6 @@ class MiniClock:
         self.color_menu.add_command(label="Custom...", command=self.choose_custom_color)
         
         self.options_menu.add_cascade(label="Text Color", menu=self.color_menu)
-        
-        # Zoom Submenu
-        self.zoom_menu = tk.Menu(self.options_menu, tearoff=0)
-        self.zoom_menu.add_command(label="Zoom In (+10%)", command=lambda: self.change_zoom(0.1))
-        self.zoom_menu.add_command(label="Zoom Out (-10%)", command=lambda: self.change_zoom(-0.1))
-        self.zoom_menu.add_separator()
-        self.zoom_menu.add_command(label="Reset (100%)", command=lambda: self.set_zoom(1.0))
-        self.zoom_menu.add_command(label="Tiny (50%)", command=lambda: self.set_zoom(0.5))
-        self.zoom_menu.add_command(label="Huge (150%)", command=lambda: self.set_zoom(1.5))
-        
-        self.options_menu.add_cascade(label="Zoom", menu=self.zoom_menu)
-
-        # Font Submenu
-        self.font_menu = tk.Menu(self.options_menu, tearoff=0)
-        self.font_menu.add_command(label="Digital (Default)", command=lambda: self.change_font("DS-Digital"))
-        self.font_menu.add_command(label="Console (Consolas)", command=lambda: self.change_font("Consolas"))
-        self.font_menu.add_command(label="Modern (Arial)", command=lambda: self.change_font("Arial"))
-        self.font_menu.add_command(label="Bold (Impact)", command=lambda: self.change_font("Impact"))
-        self.font_menu.add_command(label="Terminal (Courier)", command=lambda: self.change_font("Courier New"))
-
-        self.options_menu.add_cascade(label="Font", menu=self.font_menu)
         
         self.menu.add_cascade(label="Options", menu=self.options_menu)
         self.menu.add_separator()
@@ -137,9 +100,7 @@ class MiniClock:
                  self.root.after(200, self.refresh_background)
             
         self.update_clock()
-        self.update_clock()
         self.check_fullscreen()
-        self.monitor_background()
 
     def show_menu(self, event):
         try:
@@ -178,20 +139,6 @@ class MiniClock:
             
             # Get Active Window
             hWnd = user32.GetForegroundWindow()
-            
-            # EXCLUSION LIST:
-            # - Progman, WorkerW: Desktop
-            # - Shell_TrayWnd: Taskbar
-            className = ctypes.create_unicode_buffer(256)
-            user32.GetClassNameW(hWnd, className, 256)
-            class_str = className.value
-            
-            if class_str in ["Progman", "WorkerW", "Shell_TrayWnd"]:
-                # If active window is Desktop or Taskbar, NEVER go transparent
-                self.set_transparent_mode(False)
-                # Re-schedule and return immediately
-                self.root.after(1000, self.check_fullscreen)
-                return
             
             # Get Screen Size (Primary)
             # Note: This is imperfect for multi-mon, but we refine with Monitor check below
@@ -247,16 +194,8 @@ class MiniClock:
                     if saved_color:
                         self.change_color(saved_color, save=False)
                         
-                    self.zoom_level = data.get('zoom_level', 1.0)
-                    saved_font = data.get('font_family')
-                    if saved_font:
-                        self.font_family = saved_font
-                        
-                    self.apply_zoom(update_geometry=False) # Geometry is handled below
-                        
                     if x is not None and y is not None:
-                        buffer = int(10 * self.zoom_level)
-                        width = self.label.winfo_reqwidth() + buffer
+                        width = self.label.winfo_reqwidth() + 60
                         height = self.label.winfo_reqheight()
                         self.root.geometry(f'{width}x{height}+{x}+{y}')
                         # Ensure we force an update so winfo_x/y are correct immediately
@@ -274,9 +213,7 @@ class MiniClock:
             data = {
                 'x': self.root.winfo_x(),
                 'y': self.root.winfo_y(),
-                'color': self.text_color,
-                'zoom_level': self.zoom_level,
-                'font_family': self.font_family
+                'color': self.text_color
             }
             with open(self.config_file, 'w') as f:
                 json.dump(data, f)
@@ -289,8 +226,7 @@ class MiniClock:
         rect = self.get_taskbar_rect()
         
         # Restore the HUGE safety margin that worked in V1
-        buffer = int(10 * self.zoom_level)
-        width = self.label.winfo_reqwidth() + buffer
+        width = self.label.winfo_reqwidth() + 60
         height = self.label.winfo_reqheight()
 
         if rect:
@@ -349,91 +285,48 @@ class MiniClock:
         self.refresh_background()
         self.save_config() # Auto-save on move
 
-    def monitor_background(self):
-        # Check background every 2 seconds
-        # Only if NOT in transparent mode (fullscreen detected)
-        current_bg = self.label.cget("bg")
-        if current_bg != self.transparent_key:
-             self.refresh_background()
-        
-        self.root.after(2000, self.monitor_background)
-
     def refresh_background(self):
         try:
             x = self.root.winfo_x()
             y = self.root.winfo_y()
-            
-            # Use requested width/height + current margin buffer
-            # We can rely on reqwidth/reqheight because the label size is what matters
             width = self.label.winfo_reqwidth()
             height = self.label.winfo_reqheight()
             
             screen_width = self.root.winfo_screenwidth()
             screen_height = self.root.winfo_screenheight()
             
-            # SMART SAMPLING 2.0 (Flicker Free)
-            # We try to find a point OUTSIDE the window to sample.
-            # Priority: Left -> Right -> Top -> Bottom
+            # SMART SAMPLING:
+            # Instead of sampling the center (where the mouse is triggering hover effects),
+            # Sample 10px to the LEFT of the window.
+            # This lands on the static taskbar area, avoiding the "Highlight" color of the system clock.
+            sample_x = max(0, x - 10)
             
-            sample_x = -1
-            sample_y = -1
+            # Keep Y centered
+            sample_y = max(0, min(y + height//2, screen_height - 1))
             
-            buffer = 5 # small buffer away from the edge
+            self.root.withdraw()
+            self.root.update()
             
-            # Try LEFT
-            if x - buffer >= 0:
-                sample_x = x - buffer
-                sample_y = y + height // 2
-            # Try RIGHT
-            elif x + width + buffer < screen_width:
-                sample_x = x + width + buffer
-                sample_y = y + height // 2
-            # Try TOP
-            elif y - buffer >= 0:
-                sample_x = x + width // 2
-                sample_y = y - buffer
-             # Try BOTTOM
-            else:
-                sample_x = x + width // 2
-                sample_y = y + height + buffer
-
-            # Clamp Logic just in case
-            sample_x = max(0, min(sample_x, screen_width - 1))
-            sample_y = max(0, min(sample_y, screen_height - 1))
+            # Increased delay to capture clean background (Fixes "Thumbnail" look)
+            import time
+            time.sleep(0.2)
             
-            # NO WITHDRAW NEEDED because we are sampling OUTSIDE the window geometry
             bg_color = self.get_taskbar_color(sample_x, sample_y)
             
-            # OPAQUE SAFETY FORCE
-            # Parse hex to int for checking brightness
-            try:
-                r = int(bg_color[1:3], 16)
-                g = int(bg_color[3:5], 16)
-                b = int(bg_color[5:7], 16)
-                
-                # If color is VERY dark (near black), but not exactly black
-                # Force it to Pure Black (#000000) to ensure it is NOT transparent
-                # Threshold of 10 (out of 255) is safe for "deep black" themes
-                if (r + g + b) < 15: 
-                    bg_color = "#000000"
-                    
-            except Exception:
-                pass
-
-            # Avoid accidentally picking the transparent key (paranoid check)
+            # Avoid accidentally picking the transparent key
             if bg_color == self.transparent_key:
                 bg_color = "#000000"
             
             self.normal_bg = bg_color 
             
-            # Only update if changed (Minimize redraws)
-            if self.label.cget("bg") != bg_color and self.label.cget("bg") != self.transparent_key:
-                self.root.configure(bg=bg_color)
-                self.label.configure(bg=bg_color)
-                
+            self.root.deiconify()
+            self.root.update()
+            
+            self.root.configure(bg=bg_color)
+            self.label.configure(bg=bg_color)
         except Exception as e:
             print(f"Error refreshing background: {e}")
-
+            self.root.deiconify()
 
     def get_taskbar_color(self, x, y):
         try:
@@ -445,8 +338,7 @@ class MiniClock:
 
     def update_clock(self):
         current_time = strftime('%H:%M')
-        if self.label.cget("text") != current_time:
-             self.label.config(text=current_time)
+        self.label.config(text=current_time)
         
         # Only assert topmost if menu is NOT open
         # This prevents the clock from popping over the context menu
@@ -454,7 +346,7 @@ class MiniClock:
             self.root.attributes('-topmost', True)
             self.root.lift()
             
-        self.root.after(50, self.update_clock)
+        self.root.after(1000, self.update_clock)
 
     def run(self):
         self.root.mainloop()
@@ -472,22 +364,16 @@ class MiniClock:
 
     def check_startup_status(self):
         try:
-            # Check for the NEW key first
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
-            try:
-                winreg.QueryValueEx(key, "MiniClock_Auto") # New Key Name
-                winreg.CloseKey(key)
-                return True
-            except WindowsError:
-                winreg.CloseKey(key)
-                return False
+            winreg.QueryValueEx(key, "MiniClock")
+            winreg.CloseKey(key)
+            return True
         except WindowsError:
             return False
 
     def toggle_startup(self):
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        app_name = "MiniClock_Auto" # Changed Name to reset Task Manager status
-        old_app_name = "MiniClock"  # Old name to clean up
+        app_name = "MiniClock"
         
         if self.startup_var.get():
             # Enable Startup: Add to Registry
@@ -505,15 +391,8 @@ class MiniClock:
                     
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
                 winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, target)
-                
-                # Cleanup Old Key if exists
-                try:
-                    winreg.DeleteValue(key, old_app_name)
-                except WindowsError:
-                    pass
-                    
                 winreg.CloseKey(key)
-                print("Registry Startup enabled (New Key).")
+                print("Registry Startup enabled.")
                 
             except Exception as e:
                 print(f"Failed to set registry key: {e}")
@@ -523,12 +402,6 @@ class MiniClock:
             try:
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
                 winreg.DeleteValue(key, app_name)
-                # Ensure old one is gone too
-                try:
-                    winreg.DeleteValue(key, old_app_name)
-                except WindowsError:
-                    pass
-                    
                 winreg.CloseKey(key)
                 print("Registry Startup disabled.")
             except Exception as e:
@@ -561,59 +434,6 @@ class MiniClock:
                 self.change_color(color[1])
         except Exception as e:
             print(f"Color chooser failed: {e}")
-
-    def change_zoom(self, delta):
-        new_zoom = round(self.zoom_level + delta, 1)
-        self.set_zoom(new_zoom)
-
-    def change_font(self, font_name):
-        self.font_family = font_name
-        self.apply_zoom(update_geometry=True)
-        self.save_config()
-
-    def set_zoom(self, value):
-        # Clamp between 0.2 (20%) and 3.0 (300%)
-        self.zoom_level = max(0.2, min(3.0, value))
-        self.apply_zoom(update_geometry=True)
-        self.save_config()
-
-    def apply_zoom(self, update_geometry=True):
-        # Calculate new properties
-        new_size = int(self.base_font_size * self.zoom_level)
-        new_padx = int(self.base_padding * self.zoom_level)
-        
-        # Update Font
-        self.current_font = (self.font_family, new_size)
-        self.label.configure(font=self.current_font, padx=new_padx)
-        
-        # Force a geometry update
-        self.root.update_idletasks()
-        
-        if update_geometry:
-            # Recalculate window size based on new label size + buffer
-            # We want to keep the top-left corner (x,y) fixed, or maybe center?
-            # Standard resize usually anchors top-left.
-            
-            req_w = self.label.winfo_reqwidth()
-            req_h = self.label.winfo_reqheight()
-            
-            # The buffer we established earlier (10px total)
-            # We should probably scale the buffer too?
-            # "toutes les proportions s'ajustent"
-            # 10px buffer at 1.0 zoom. at 2.0 zoom -> 20px buffer.s
-            buffer = int(10 * self.zoom_level)
-            
-            final_w = req_w + buffer 
-            final_h = req_h # Height usually fits tight to font
-            
-            x = self.root.winfo_x()
-            y = self.root.winfo_y()
-            
-            self.root.geometry(f"{final_w}x{final_h}+{x}+{y}")
-            self.root.update()
-            
-            # Refresh background since size changed
-            self.refresh_background()
 
 if __name__ == "__main__":
     try:

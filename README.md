@@ -5,12 +5,15 @@
 
 A minimalist, always-on-top digital clock for Windows with a "Matrix" aesthetic. Designed to be unobtrusive, smart, and fully customizable.
 
-## 🚀 What's New (v2.2)
-*   **Context Menu**: Right-click to access all settings.
-*   **Customization**: Change text color (Matrix Green, Cyber Blue, Red, Amber, White, or Custom).
-*   **Run on Startup**: Native Registry integration for silent auto-launch.
-*   **Snooze Mode**: Temporarily hide the clock for 10 minutes.
-*   **Smart Transparency**: Automatically becomes transparent when a fullscreen app (Game/Movie) is detected.
+## 🚀 What's New (v6.1)
+*   **Startup Fix**: New robust startup logic (Registry Force) to ensure it runs even on simplified OS (Atlas/Revi).
+*   **Smart Background**: 
+    *   **Flicker-Free**: Continuous monitoring of the background color.
+    *   **Opaque Safety**: Prevents accidental transparency on dark taskbars.
+    *   **Desktop Exclusion**: Clicking the Desktop wallpaper no longer triggers transparency!
+*   **Zoom & Scale**: Resize the clock 50% to 150% (Controls UI, Font, and Frame).
+*   **Fonts**: Choose between Digital, Console, Modern, Bold, or Terminal fonts.
+*   **Performance**: Optimized 50ms refresh rate for "Always on Top" enforcement.
 
 ## ⚙️ How it works
 1.  **Launch**: Run `MiniClock.exe`. It positions itself automatically above the taskbar.
@@ -57,12 +60,15 @@ MIT License. See [LICENSE](LICENSE) file for details.
 
 Une horloge numérique minimaliste "toujours visible" pour Windows avec une esthétique "Matrix". Conçue pour être discrète, intelligente et entièrement personnalisable.
 
-## 🚀 Nouveautés (v2.2)
-*   **Menu Contextuel** : Clic droit pour accéder à tous les réglages.
-*   **Personnalisation** : Changez la couleur du texte (Vert Matrix, Bleu Cyber, Rouge, Ambre, Blanc ou Personnalisé).
-*   **Démarrage Auto** : Intégration native au Registre pour un lancement silencieux.
-*   **Mode Snooze** : Masquez l'horloge temporairement pendant 10 minutes.
-*   **Transparence Intelligente** : Devient automatiquement transparente lorsqu'une application plein écran (Jeu/Film) est détectée.
+## 🚀 Nouveautés (v6.1)
+*   **Démarrage Réparé** : Nouvelle logique robuste (Force Registry) pour garantir le lancement même sur les OS allégés (Atlas/Revi).
+*   **Fond Intelligent** :
+    *   **Anti-Scintillement** : Surveillance continue de la couleur d'arrière-plan.
+    *   **Sécurité Opacité** : Empêche la transparence accidentelle sur les barres des tâches sombres.
+    *   **Exclusion Bureau** : Le clic sur le fond d'écran ne déclenche plus la transparence !
+*   **Zoom & Échelle** : Redimensionnez l'horloge de 50% à 150% (Ajuste l'interface, la police et le cadre).
+*   **Polices** : Choix entre Digital, Console, Moderne, Gras ou Terminal.
+*   **Performance** : Rafraîchissement optimisé à 50ms pour le "Toujours Visible".
 
 ## ⚙️ Fonctionnement
 1.  **Lancement** : Lancez `MiniClock.exe`. Elle se positionne automatiquement au-dessus de la barre des tâches.

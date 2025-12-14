@@ -1,25 +1,23 @@
-=== Mini Matrix Clock (Portable) ===
+Mini Matrix Clock (V6 - Smart Monitor & Startup Fix)
+----------------------------------
 
-Version: 2.1 (Standalone)
-Created: 2025-12-10
+INSTRUCTIONS:
 
-[INSTALLATION]
-Aucune installation requise !
-Ce dossier contient tout ce qu'il faut. Vous pouvez le copier sur une clé USB et le mettre sur un autre PC.
+1. Double-click "MiniClock.exe".
+2. Startup Fix: 
+   - Enabling "Run on Startup" now uses a NEW registry key ("MiniClock_Auto").
+   - This should force Windows to enable it, even if you previously disabled it.
+   - Check Task Manager > Startup to confirm "MiniClock_Auto" is present and enabled.
 
-[UTILISATION]
-1. Lancez "MiniClock.exe".
-2. L'horloge va apparaitre et se caler automatiquement sur l'heure Windows.
-   (Si elle ne le fait pas, le fichier "config.json" sera créé pour mémoriser sa position future).
+3. Background Fix:
+   - The clock now continuously monitors the background color.
+   - It will FORCE opacity (black) if the background is dark, to prevent transparency issues.
 
-[FONCTIONNALITES]
-- Clic Gauche maintenu : Déplacer.
-- Clic Droit : Menu (Quitter, etc.).
-- Mode Plein Ecran : Devient transparente pour les films/jeux.
+PORTABILITY:
+- This folder is self-contained.
 
-[FICHIERS]
-- MiniClock.exe : Le programme.
-- config.json : (Sera créé automatiquement) Sauvegarde votre position.
-- source_code_backup.py : Le code source original (si besoin).
+BACKUP:
+- Your previous version is saved in "Portable_MiniClock_V5_Backup".
 
-Bonne utilisation !
+Enjoy!
+CordaAvlao
